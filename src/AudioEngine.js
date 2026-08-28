@@ -217,6 +217,26 @@ class AudioEngine {
     }
 
     /**
+     * Decode a sound into an AudioBuffer without creating a player.
+     * Callers can cache the returned immutable buffer and create a separate
+     * player for each sprite or sound bank.
+     * @param {object} sound - an object containing audio data
+     * @returns {Promise<AudioBuffer>} decoded audio data
+     */
+    decodeSoundBuffer (sound) {
+        return this._decodeSound(sound).then(([, buffer]) => buffer);
+    }
+
+    /**
+     * Create a new player around an existing decoded AudioBuffer.
+     * @param {AudioBuffer} buffer - decoded audio data
+     * @returns {SoundPlayer} a player with its own playback state and ID
+     */
+    createSoundPlayer (buffer) {
+        return new SoundPlayer(this, {id: uid(), buffer});
+    }
+
+    /**
      * Decode a sound, decompressing it into audio samples.
      *
      * Create a SoundPlayer instance that can be used to play the sound and
@@ -228,8 +248,8 @@ class AudioEngine {
      * @returns {?Promise} - a promise which will resolve to the buffer
      */
     decodeSoundPlayer (sound) {
-        return this._decodeSound(sound)
-            .then(([id, buffer]) => new SoundPlayer(this, {id, buffer}));
+        return this.decodeSoundBuffer(sound)
+            .then(buffer => this.createSoundPlayer(buffer));
     }
 
     /**
