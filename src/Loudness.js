@@ -27,6 +27,14 @@ class Loudness {
         this.mic = null;
     }
 
+    dispose () {
+        this._disposed = true;
+        if (this.audioStream) this.audioStream.getTracks().forEach(track => track.stop());
+        if (this.mic) this.mic.disconnect();
+        if (this.analyser) this.analyser.disconnect();
+        this.mic = null;
+    }
+
     /**
      * Get the current loudness of sound received by the microphone.
      * Sound is measured in RMS and smoothed.
@@ -35,9 +43,14 @@ class Loudness {
      */
     getLoudness () {
         // The microphone has not been set up, so try to connect to it
-        if (!this.mic && !this.connectingToMic) {
+        if (!this._disposed && !this.mic && !this.connectingToMic &&
+            Date.now() >= (this._retryAfter || 0) && navigator.mediaDevices) {
             this.connectingToMic = true; // prevent multiple connection attempts
-            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+            Promise.resolve().then(() => navigator.mediaDevices.getUserMedia({audio: true})).then(stream => {
+                if (this._disposed) {
+                    stream.getTracks().forEach(track => track.stop());
+                    return;
+                }
                 this.audioStream = stream;
                 this.mic = this.audioContext.createMediaStreamSource(stream);
                 this.analyser = this.audioContext.createAnalyser();
@@ -45,7 +58,10 @@ class Loudness {
                 this.micDataArray = new Float32Array(this.analyser.fftSize);
             })
                 .catch(err => {
+                    this._retryAfter = Date.now() + 5000;
                     log.warn(err);
+                }).then(() => {
+                    this.connectingToMic = false;
                 });
         }
 
