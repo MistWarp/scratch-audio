@@ -28,3 +28,17 @@ tap.test('creates independent players from one decoded buffer', async t => {
     t.equal(first.buffer, decodedBuffer, 'first player uses the decoded buffer');
     t.equal(second.buffer, decodedBuffer, 'second player shares the decoded buffer');
 });
+
+tap.test('dispose closes audio once and releases the microphone', async t => {
+    let closed = 0;
+    let disconnected = 0;
+    let microphoneDisposed = 0;
+    const engine = new AudioEngine({createGain: () => ({connect () {}, disconnect () { disconnected++; }}),
+        destination: {}, state: 'running', close: () => { closed++; return Promise.resolve(); }});
+    engine.loudness = {dispose: () => { microphoneDisposed++; }};
+    await engine.dispose();
+    await engine.dispose();
+    t.equal(closed, 1);
+    t.equal(disconnected, 1);
+    t.equal(microphoneDisposed, 1);
+});

@@ -88,6 +88,15 @@ class AudioEngine {
         StartAudioContext(this.audioContext);
     }
 
+    dispose () {
+        if (this._disposePromise) return this._disposePromise;
+        if (this.loudness) this.loudness.dispose();
+        this.inputNode.disconnect();
+        this.audioBuffers = {};
+        this._disposePromise = this.audioContext.state === 'closed' ? Promise.resolve() : this.audioContext.close();
+        return this._disposePromise;
+    }
+
     /**
      * Current time in the AudioEngine.
      * @type {number}
