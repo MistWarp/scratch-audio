@@ -251,6 +251,10 @@ class SoundPlayer extends EventEmitter {
      * out.
      */
     play () {
+        if (typeof this.audioEngine.resumeIfSuspended === 'function') {
+            this.audioEngine.resumeIfSuspended();
+        }
+
         if (this.isStarting) {
             this.emit('stop');
             this.emit('play');
