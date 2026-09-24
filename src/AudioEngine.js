@@ -86,10 +86,40 @@ class AudioEngine {
         this.effects = [PanEffect, PitchEffect, VolumeEffect];
 
         StartAudioContext(this.audioContext);
+
+        // Browsers suspend the context when a tab goes to the background or, on iOS, after an
+        // interruption, and it stays suspended until something resumes it.
+        this._onVisibilityChange = () => {
+            if (typeof document === 'undefined' || document.visibilityState !== 'hidden') {
+                this.resumeIfSuspended();
+            }
+        };
+        if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+            document.addEventListener('visibilitychange', this._onVisibilityChange);
+        }
+    }
+
+    /**
+     * Ask the browser to resume the audio context if it has been suspended.
+     * @returns {boolean} True if a resume was requested.
+     */
+    resumeIfSuspended () {
+        const context = this.audioContext;
+        if (!context || context.state !== 'suspended' || typeof context.resume !== 'function') {
+            return false;
+        }
+        const resumed = context.resume();
+        if (resumed && typeof resumed.catch === 'function') {
+            resumed.catch(() => {});
+        }
+        return true;
     }
 
     dispose () {
         if (this._disposePromise) return this._disposePromise;
+        if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function') {
+            document.removeEventListener('visibilitychange', this._onVisibilityChange);
+        }
         if (this.loudness) this.loudness.dispose();
         this.inputNode.disconnect();
         this.audioBuffers = {};
