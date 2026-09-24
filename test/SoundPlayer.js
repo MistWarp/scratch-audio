@@ -1,4 +1,3 @@
-/* global Uint8Array Promise */
 const tap = require('tap');
 const {AudioContext} = require('web-audio-test-api');
 
