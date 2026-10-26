@@ -57,6 +57,23 @@ tap.test('a suspended context is resumed before a sound plays', t => {
     t.end();
 });
 
+tap.test('a paused engine keeps its context suspended', t => {
+    let resumed = 0;
+    const engine = new AudioEngine(fakeContext({
+        state: 'suspended',
+        resume: () => {
+            resumed++;
+            return Promise.resolve();
+        }
+    }));
+    engine.paused = true;
+    t.equal(engine.resumeIfSuspended(), false);
+    engine.paused = false;
+    t.equal(engine.resumeIfSuspended(), true);
+    t.equal(resumed, 1);
+    t.end();
+});
+
 tap.test('a failed resume does not reject anything', async t => {
     const engine = new AudioEngine(fakeContext({
         state: 'suspended',
