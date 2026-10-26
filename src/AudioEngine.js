@@ -85,6 +85,8 @@ class AudioEngine {
          */
         this.effects = [PanEffect, PitchEffect, VolumeEffect];
 
+        this.paused = false;
+
         StartAudioContext(this.audioContext);
 
         // Browsers suspend the context when a tab goes to the background or, on iOS, after an
@@ -105,7 +107,7 @@ class AudioEngine {
      */
     resumeIfSuspended () {
         const context = this.audioContext;
-        if (!context || context.state !== 'suspended' || typeof context.resume !== 'function') {
+        if (this.paused || !context || context.state !== 'suspended' || typeof context.resume !== 'function') {
             return false;
         }
         const resumed = context.resume();
