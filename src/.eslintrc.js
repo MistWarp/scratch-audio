@@ -1,5 +1,8 @@
 module.exports = {
     root: true,
     extends: ['scratch', 'scratch/es6'],
-    env: {browser: true}
+    env: {browser: true},
+    rules: {
+        'require-jsdoc': 'off'
+    }
 };
