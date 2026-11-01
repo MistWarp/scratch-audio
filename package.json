@@ -10,7 +10,8 @@
     "build": "webpack --bail",
     "watch": "webpack --watch",
     "lint": "eslint .",
-    "tap": "tap test/effects/*.js test/*.js"
+    "tap": "tap test/effects/*.js test/*.js",
+    "check:conventions": "node scripts/check-conventions.mjs"
   },
   "repository": {
     "type": "git",
@@ -40,6 +41,7 @@
     "eslint-config-scratch": "9.0.3",
     "json": "9.0.6",
     "tap": "^16.3.10",
+    "typescript": "~6.0.3",
     "web-audio-test-api": "0.5.2",
     "webpack": "4.47.0",
     "webpack-cli": "3.3.12"
